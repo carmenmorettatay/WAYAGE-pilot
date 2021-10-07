@@ -1,0 +1,201 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Bot.Builder;
+using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Builder.Dialogs.Choices;
+using Microsoft.Bot.Connector;
+using Microsoft.Bot.Schema;
+
+namespace 
+{
+    public class UserProfileDialog : ComponentDialog
+    {
+        private readonly IStatePropertyAccessor<UserProfile> _userProfileAccessor;
+
+        public UserProfileDialog(UserState userState)
+            : base(nameof(UserProfileDialog))
+        {
+            _userProfileAccessor = userState.CreateProperty<UserProfile>("UserProfile");
+
+            // This array defines how the Waterfall will execute.
+            var waterfallSteps = new WaterfallStep[]
+            {
+                Step1Async,
+                Step2Async,
+                Step3Async,
+                Step4Async,
+                Step5Async,
+                Step6Async,
+                Step7Async,
+                Step8Async,
+                Step9Async,
+                Step10Async,
+                Step11Async,
+                AudioAttachAsync,
+                FinishStepAsync,
+                ResumenStepAsync
+
+            };
+
+            // Add named dialogs to the DialogSet. These names are saved in the dialog state.
+            AddDialog(new WaterfallDialog(nameof(WaterfallDialog), waterfallSteps));
+            AddDialog(new TextPrompt(nameof(TextPrompt)));
+            AddDialog(new NumberPrompt<int>(nameof(NumberPrompt<int>), AgePromptValidatorAsync));
+            AddDialog(new ChoicePrompt(nameof(ChoicePrompt)));
+            AddDialog(new ConfirmPrompt(nameof(ConfirmPrompt)));
+            AddDialog(new AttachmentPrompt(nameof(AttachmentPrompt), PicturePromptValidatorAsync));
+
+            // The initial child Dialog to run.
+            InitialDialogId = nameof(WaterfallDialog);
+        }
+        private static string SimpleConvertToSSML(string text, string voiceId, string locale)
+        {
+            try
+            {
+                string ssmlTemplate = $"<speak version='1.0' xmlns='https://www.w3.org/2001/10/synthesis' xml:lang='{locale}'><voice name='{voiceId}'>{text}</voice></speak>";
+                return ssmlTemplate;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        private static async Task<DialogTurnResult> Step1Async(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        {
+            return await stepContext.PromptAsync(nameof(TextPrompt),
+                new PromptOptions
+                {
+                    Prompt = MessageFactory.Text("Por favor diga el código del participante.", null, InputHints.ExpectingInput)
+                }, cancellationToken);
+        }
+
+        private static async Task<DialogTurnResult> Step2Async(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        {
+           // await stepContext.Context.SendActivityAsync(MessageFactory.Text($"Ya puede comenzar a grabar la sesión utilizando la grabadora que esta arriba en su pantalla"), cancellationToken);
+           
+            stepContext.Values["Codigo"] = (string)stepContext.Result;
+
+            return await stepContext.PromptAsync(nameof(TextPrompt),
+                new PromptOptions
+                {
+                    Prompt = MessageFactory.Text("¿Cómo se siente hoy?", null, InputHints.ExpectingInput)
+                }, cancellationToken);
+        }
+
+        private static async Task<DialogTurnResult> Step3Async(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        {
+           
+
+            stepContext.Values["Step2"] = (string)stepContext.Result;
+
+            return await stepContext.PromptAsync(nameof(TextPrompt),
+                new PromptOptions
+                {
+                    Prompt = MessageFactory.Text("¿Qué hizo ayer y qué planes tiene para mañana?", null, InputHints.ExpectingInput)
+                }, cancellationToken);
+        }
+
+        private static async Task<DialogTurnResult> Step4Async(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        {
+            stepContext.Values["Step3"] = (string)stepContext.Result;
+            return await stepContext.PromptAsync(nameof(TextPrompt),
+                new PromptOptions
+                {
+                    Prompt = MessageFactory.Text("¿Cuál es la fecha de hoy y en qué día de la semana nos encontramos?", null, InputHints.ExpectingInput)
+                }, cancellationToken);
+        }
+        private static async Task<DialogTurnResult> Step5Async(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        {
+            stepContext.Values["Step4"] = (string)stepContext.Result;
+            return await stepContext.PromptAsync(nameof(TextPrompt),
+                new PromptOptions
+                {
+                    Prompt = MessageFactory.Text(" ¿En qué lugar estamos y cuántos años tiene? ", null, InputHints.ExpectingInput)
+                }, cancellationToken);
+        }
+
+        private static async Task<DialogTurnResult> Step6Async(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        {
+            stepContext.Values["Step5"] = (string)stepContext.Result;
+            return await stepContext.PromptAsync(nameof(TextPrompt),
+                new PromptOptions
+                {
+                    Prompt = MessageFactory.Text("¿Cuál es el nombre del presidente actual en su país de residencia actual?", null, InputHints.ExpectingInput)
+                }, cancellationToken);
+        }
+
+        private static async Task<DialogTurnResult> Step7Async(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        {
+            stepContext.Values["Step6"] = (string)stepContext.Result;
+            return await stepContext.PromptAsync(nameof(TextPrompt),
+                new PromptOptions
+                {
+                    Prompt = MessageFactory.Text("¿Cuál es el nombre del presidente anterior? ", null, InputHints.ExpectingInput)
+                }, cancellationToken);
+        }
+
+        private static async Task<DialogTurnResult> Step8Async(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        {
+            stepContext.Values["Step7"] = (string)stepContext.Result;
+            return await stepContext.PromptAsync(nameof(TextPrompt),
+                new PromptOptions
+                {
+                    Prompt = MessageFactory.Text("Enumere durante un minuto todos los nombres de animales que conozca", null, InputHints.ExpectingInput)
+                }, cancellationToken);
+        }
+        private static async Task<DialogTurnResult> Step9Async(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        {
+            stepContext.Values["Step8"] = (string)stepContext.Result;
+            return await stepContext.PromptAsync(nameof(TextPrompt),
+                new PromptOptions
+                {
+                    Prompt = MessageFactory.Text("Repita estas cinco palabras: manzana, cuchara, bicicleta, libro y farola", null, InputHints.ExpectingInput)
+                }, cancellationToken);
+        }
+
+        private static async Task<DialogTurnResult> Step10Async(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        {
+            stepContext.Values["Step9"] = (string)stepContext.Result;
+            return await stepContext.PromptAsync(nameof(TextPrompt),
+                new PromptOptions
+                {
+                    Prompt = MessageFactory.Text("Reste de tres en tres desde 29 hasta llegar a 0.", null, InputHints.ExpectingInput)
+                }, cancellationToken);
+        }
+
+        private static async Task<DialogTurnResult> Step11Async(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        {
+            stepContext.Values["Step10"] = (string)stepContext.Result;
+            return await stepContext.PromptAsync(nameof(TextPrompt),
+                new PromptOptions
+                {
+                    Prompt = MessageFactory.Text("Repita las cinco palabras que le hemos presentado antes de contar hacia atrás.", null, InputHints.ExpectingInput)
+                }, cancellationToken);
+        }
+
+
+        private static async Task<DialogTurnResult> AudioAttachAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        {
+            stepContext.Values["Step11"] = (string)stepContext.Result;
+             
+ 
+                // WaterfallStep always finishes with the end of the Waterfall or with another dialog; here it is a Prompt Dialog.
+                var promptOptions = new PromptOptions
+                {
+                    Prompt = MessageFactory.Text("Por favor detenga la grabación, descague el archivo mp3 y adjuntelo en el chat."),
+                    RetryPrompt = MessageFactory.Text("El arvchivo debe ser mp3."),
+                };
+
+                return await stepContext.PromptAsync(nameof(AttachmentPrompt), promptOptions, cancellationToken);
+           
+        }
+        private async Task<DialogTurnResult> FinishStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        {
+            stepContext.Values["audio"] = ((IList<Attachment>)stepContext.Result)?.FirstOrDefault();
+
+            // WaterfallStep always finishes with the end of the Waterfall or with another dialog; here it is a Prompt Dialog.
+            return await stepContext.PromptAsync(nameof(ConfirmPrompt), new PromptOptions { Prompt = MessageFactory.Text("Gracias por su colaboración, para finalizar el tes, diga SI, para volver a hacerlo diga NO ", null, InputHints.ExpectingInput) }, cancellationToken);
+        }
